@@ -226,3 +226,42 @@ def load_weights(path, cfg, device):
     state = torch.load(path, map_location="cpu", weights_only=True)
     model.load_state_dict({k: v.float() for k, v in state.items()})
     return model.to(device).eval()
+
+
+# --------------------------------------------------------------------------- #
+# Pretrained BraTS model (MONAI model zoo) - no training needed
+# --------------------------------------------------------------------------- #
+PRETRAINED_BUNDLE = "brats_mri_segmentation"  # SegResNet trained on BraTS 2018 (does not contain UCSF-PDGM)
+PRETRAINED_ORDER = [2, 1, 3, 0]  # our channels (FLAIR, T1, T1c, T2) -> bundle order (T1c, T1, T2, FLAIR)
+
+
+def load_pretrained(device, bundle_dir="model/brats_bundle"):
+    """Download (once, ~19 MB) and load the MONAI BraTS segmentation bundle."""
+    from monai.bundle import download
+
+    weights = Path(bundle_dir) / PRETRAINED_BUNDLE / "models" / "model.pt"
+    if not weights.exists():
+        download(name=PRETRAINED_BUNDLE, bundle_dir=str(bundle_dir), source="monaihosting")
+    from monai.networks.nets import SegResNet
+
+    model = SegResNet(spatial_dims=3, in_channels=4, out_channels=3, init_filters=16, blocks_down=(1, 2, 2, 4),
+                      blocks_up=(1, 1, 1), dropout_prob=0.2)
+    model.load_state_dict(torch.load(weights, map_location="cpu", weights_only=True))
+    return model.to(device).eval()
+
+
+@torch.inference_mode()
+def predict_pretrained(model, image, device, flip_tta=False):
+    """Whole cropped volume in one pass (padded to a multiple of 8) -> (3, x, y, z) probabilities TC, WT, ET."""
+    image = image.astype(np.float32)[PRETRAINED_ORDER]
+    pad = [(0, 0)] + [(0, (-s) % 8) for s in image.shape[1:]]
+    x = torch.from_numpy(np.pad(image, pad))[None].to(device)
+    variants = [()] + ([(2, 3)] if flip_tta else [])
+    total = 0
+    for dims in variants:
+        xi = torch.flip(x, dims) if dims else x
+        with torch.autocast(device.type, dtype=torch.float16, enabled=device.type == "cuda"):
+            p = torch.sigmoid(model(xi).float())
+        total = total + (torch.flip(p, dims) if dims else p)
+    p = (total / len(variants))[0].cpu().numpy()
+    return p[:, :image.shape[1], :image.shape[2], :image.shape[3]]

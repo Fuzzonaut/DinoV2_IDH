@@ -23,3 +23,8 @@ venv/
 Thumbs.db
 .vscode/
 .idea/
+
+# v2 artefacts
+model/brats_bundle/
+features_tumour_*/
+results/v2/*.nii.gz
