@@ -61,3 +61,54 @@ class SearchConfig:
         assert self.feature_kind in {"cls", "patch_mean", "concat"}
         assert 0 <= self.lower_fraction < self.upper_fraction <= 1
         assert len(set(self.counts)) == len(self.counts)
+
+
+# --------------------------------------------------------------------------- #
+# v2: tumour segmentation + tumour-focused classifiers
+# --------------------------------------------------------------------------- #
+SEG_MODALITIES = ("FLAIR", "T1", "T1c", "T2")  # segmentation input channels
+
+
+@dataclass(frozen=True)
+class SegConfig:
+    """3-D tumour segmentation (SegResNet), cross-fitted so no patient is segmented by a model trained on it."""
+
+    seed: int = 2026
+    folds: int = 3
+    epochs: int = 50
+    roi: tuple = (128, 128, 128)
+    batch_size: int = 2
+    learning_rate: float = 2e-4
+    weight_decay: float = 1e-5
+    init_filters: int = 16
+    tumour_crop_probability: float = 0.6  # share of training crops centred on a tumour voxel
+    sw_overlap: float = 0.5
+
+
+@dataclass(frozen=True)
+class TumourConfig:
+    """How the tumour mask is used to build the DINOv2 input."""
+
+    min_tumour_voxels: int = 20  # a slice counts as "tumour slice" above this many WT voxels
+    margin_voxels: int = 12  # around the in-plane tumour bounding box
+    min_crop_voxels: int = 64  # smallest crop side (1 mm voxels), so tiny tumours keep some context
+    image_size: int = 224
+
+
+@dataclass(frozen=True)
+class CVConfig:
+    """Repeated stratified CV on the development patients (train + validation); test stays untouched."""
+
+    seed: int = 2026
+    folds: int = 5
+    repeats: int = 3
+    # attention head
+    counts: tuple = (8, 16, 32, None)  # tumour slices per patient (None = all)
+    max_epochs: int = 40
+    attention_dim: int = 128
+    dropout: float = 0.3
+    batch_size: int = 16
+    learning_rate: float = 1e-3
+    weight_decay: float = 1e-4
+    bag_sampling: bool = True  # train on a random subset of each patient's slices every epoch
+    bootstrap_repeats: int = 2000

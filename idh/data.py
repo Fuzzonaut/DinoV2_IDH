@@ -34,9 +34,12 @@ MUTANT = {
 # Accepted file-name suffixes per modality, in order of preference.
 MODALITY_SUFFIXES = {
     "FLAIR": ("FLAIR_bias", "FLAIR"),
+    "T1": ("T1_bias", "T1"),
     "T1c": ("T1c_bias", "T1gad_bias", "T1c", "T1gad"),
     "T2": ("T2_bias", "T2"),
+    "seg": ("tumor_segmentation",),  # expert mask: 1 necrosis, 2 oedema, 4 enhancing tumour
 }
+FILE_PATTERNS = {m: f"*_{m}.nii.gz" for m in ("FLAIR", "T1", "T1c", "T2")} | {"seg": "*_tumor_segmentation.nii.gz"}
 
 
 # --------------------------------------------------------------------------- #
@@ -103,15 +106,15 @@ def load_metadata(path):
 # --------------------------------------------------------------------------- #
 # Images
 # --------------------------------------------------------------------------- #
-def download_mri(image_dir, modalities=("FLAIR", "T1c", "T2"), token=None):
-    """Download only the three structural volumes per patient (~4.6 GB instead of the full 142 GB)."""
+def download_mri(image_dir, modalities=("FLAIR", "T1", "T1c", "T2", "seg"), token=None):
+    """Download only the structural volumes and tumour masks (~6 GB instead of the full 142 GB)."""
     from huggingface_hub import snapshot_download
 
     for attempt in range(3):
         try:
             snapshot_download(
                 repo_id=DATASET_REPO, repo_type="dataset", revision=DATASET_REVISION,
-                local_dir=str(image_dir), allow_patterns=[f"*_{m}.nii.gz" for m in modalities],
+                local_dir=str(image_dir), allow_patterns=[FILE_PATTERNS[m] for m in modalities],
                 max_workers=1, token=token,
             )
             break
