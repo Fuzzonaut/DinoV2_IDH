@@ -1,0 +1,11 @@
+candidate,requested_count,stage,mean_cv_auroc,std_fold_auroc,mean_actual_slices,min_actual_slices,max_actual_slices,median_best_epoch
+k064,64,initial,0.786212,0.045998,64.0,64,64,11
+k032,32,initial,0.780192,0.056306,32.0,32,32,12
+k062,62,refinement,0.773406,0.032219,62.0,62,62,10
+k048,48,refinement,0.772160,0.029290,48.0,48,48,14
+k016,16,initial,0.765364,0.053383,16.0,16,16,7
+all,,initial,0.761157,0.047533,125.944928,110,139,11
+k024,24,initial,0.736884,0.022762,24.0,24,24,9
+k008,8,initial,0.695626,0.092248,8.0,8,8,21
+k004,4,initial,0.676784,0.114076,4.0,4,4,9
+k012,12,initial,0.674897,0.089935,12.0,12,12,10

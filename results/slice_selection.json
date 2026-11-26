@@ -1,0 +1,27 @@
+{
+  "selected_count": 64,
+  "selected_candidate": "k064",
+  "selected_cv_auroc": 0.786212,
+  "best_tested_cv_auroc": 0.786212,
+  "final_training_epochs": 11,
+  "settings": {
+    "seed": 2026,
+    "counts": [4, 8, 12, 16, 24, 32, 64, null],
+    "refine": true,
+    "cv_folds": 3,
+    "cv_repeats": 1,
+    "inner_stop_fraction": 0.2,
+    "near_tie_auc": 0.005,
+    "feature_kind": "cls",
+    "lower_fraction": 0.05,
+    "upper_fraction": 0.95,
+    "attention_dim": 128,
+    "dropout": 0.3,
+    "batch_size": 16,
+    "max_epochs": 40,
+    "patience": 6,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "bootstrap_repeats": 1000
+  }
+}

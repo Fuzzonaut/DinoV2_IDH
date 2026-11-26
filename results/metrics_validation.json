@@ -1,0 +1,8 @@
+{
+  "patients": 75, "mutants": 16,
+  "auroc": 0.852754, "average_precision": 0.767211,
+  "accuracy": 0.866667, "balanced_accuracy": 0.824153,
+  "sensitivity": 0.75, "specificity": 0.898305, "ppv": 0.666667, "npv": 0.929825,
+  "f1": 0.705882, "log_loss": 0.447015, "brier": 0.137907,
+  "threshold": 0.635, "tn": 53, "fp": 6, "fn": 4, "tp": 12
+}

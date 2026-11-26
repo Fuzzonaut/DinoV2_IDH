@@ -1,0 +1,14 @@
+torch>=2.1
+# Pinned: the checkpoint loading and layer names were checked with this version.
+transformers==4.44.2
+huggingface_hub>=0.24,<1.0
+safetensors>=0.4.3
+numpy>=1.26,<3
+pandas>=2.0
+scipy>=1.11
+scikit-learn>=1.4
+nibabel>=5.2
+matplotlib>=3.8
+requests>=2.31
+tqdm>=4.66
+jupyter

@@ -1,0 +1,4 @@
+split,wildtype,mutant,total,mutant_fraction
+train,274,71,345,0.205797
+validation,59,16,75,0.213333
+test,59,16,75,0.213333

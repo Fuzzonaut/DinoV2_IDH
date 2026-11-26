@@ -1,0 +1,6 @@
+metric,numerator,denominator,estimate,wilson_low,wilson_high
+accuracy,61,75,0.813333,0.710714,0.885419
+sensitivity,6,16,0.375000,0.184812,0.613590
+specificity,55,59,0.932203,0.838245,0.973321
+ppv,6,10,0.600000,0.312674,0.831820
+npv,55,65,0.846154,0.739447,0.914229
