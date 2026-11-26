@@ -61,7 +61,7 @@ A fresh head is trained on all 345 training patients for the median early-stoppi
 
 ## Results
 
-These are the numbers from the original Kaggle run (GPU, seed 2026). The raw outputs are in [`results/`](results/).
+These are the numbers from the original Kaggle run (GPU, seed 2026). The age-only baseline was computed afterwards with `evaluate.py` on the same split, features and trained head. The raw outputs are in [`results/`](results/).
 
 **Slice-count search** (training patients, 3-fold CV):
 
@@ -76,15 +76,16 @@ These are the numbers from the original Kaggle run (GPU, seed 2026). The raw out
 
 **Test set** (75 patients, 16 mutant, used once):
 
-| Metric | DINOv2 + attention MIL | Always wildtype |
-|---|---|---|
-| **AUROC** (95% bootstrap CI) | **0.787** (0.659–0.899) | 0.500 |
-| Average precision | 0.545 | 0.213 |
-| Accuracy | 0.813 | 0.787 |
-| Balanced accuracy | 0.654 | 0.500 |
-| Sensitivity (mutant) | 0.375 (6 / 16) | 0.000 |
-| Specificity (wildtype) | 0.932 (55 / 59) | 1.000 |
-| PPV / NPV | 0.600 / 0.846 | – / 0.787 |
+| Metric | DINOv2 + attention MIL | Age only | Always wildtype |
+|---|---|---|---|
+| **AUROC** (95% bootstrap CI) | **0.787** (0.659–0.899) | **0.910** (0.818–0.978) | 0.500 |
+| Average precision | 0.545 | 0.719 | 0.213 |
+| Accuracy | 0.813 | 0.867 | 0.787 |
+| Balanced accuracy | 0.654 | 0.847 | 0.500 |
+| Sensitivity (mutant) | 0.375 (6 / 16) | 0.812 (13 / 16) | 0.000 |
+| Specificity (wildtype) | 0.932 (55 / 59) | 0.881 (52 / 59) | 1.000 |
+| PPV / NPV | 0.600 / 0.846 | 0.650 / 0.945 | – / 0.787 |
+| Threshold (from validation) | 0.635 | 0.330 | – |
 
 The validation split, which was used to set the threshold, gave AUROC 0.853 and sensitivity 0.75 (12/16).
 
@@ -96,15 +97,16 @@ The validation split, which was used to set the threshold, gave AUROC 0.853 and 
 * **Accuracy says little here.** 81.3% looks good, but always answering "wildtype" already gives 78.7%.
 * **The threshold did not transfer.** It was tuned on 16 validation mutants and found 12 of them, but on the test set it finds only 6 of 16. With so few positives a tuned threshold is fragile. A lower threshold would catch more mutants at the cost of more false alarms.
 * **The slice count matters only at the low end.** 4–12 slices are clearly worse, but everything from 16 to "all" lies within about one fold-SD. The choice of 64 over 32 (0.786 vs. 0.780) is a near-tie, not a meaningful win.
-* **Age is a strong competitor.** IDH-mutant patients are about 20 years younger on average, so the age-only baseline is the real bar the image model has to clear. It was added after the Kaggle run, so its test number is not shown yet: run `python evaluate.py` (it needs only the feature cache) to get it.
+* **Age alone does better than the image model.** A one-variable logistic regression on age reaches 0.91 AUROC and finds 13 of 16 mutants, against 0.79 and 6 of 16 for the image model. With only 16 mutant test patients the AUROC intervals overlap, but the direction is clear. IDH-mutant patients are about 20 years younger on average, and in this setup a frozen natural-image encoder plus slice pooling does not capture more than that. This is the most important result of the project. The obvious next steps are to combine age with the image score, and to test whether the image model adds anything once age is known.
+* **Re-running on a CPU gives different CV numbers.** The scripts reproduce the original notebook exactly on the same device (checked by running the notebook's own training code on CPU). Dropout random numbers differ between GPU and CPU, though, so a CPU run of `search_slices.py` gives other fold scores (k=4: 0.72 instead of 0.68, k=64: 0.79). It still selects 64 slices, and the test AUROC becomes 0.772. That the ranking moves this much with the dropout masks is more evidence that the slice-count differences are mostly noise.
 
 ## What changed from the original notebook
 
-The preprocessing, encoder, head, slice-search procedure, seeds and threshold rule are unchanged. With the same feature cache, the scripts follow the same steps and seeds as the notebook.
+The preprocessing, encoder, head, slice-search procedure, seeds and threshold rule are unchanged. With the same feature cache, the scripts follow the same steps and seeds as the notebook. Applied to the trained head, they reproduce its test predictions exactly, and on the same device they also reproduce its training.
 
 1. **Structure.** The ~1,400-line notebook is split into an `idh/` package, five step scripts and two short notebooks. Kaggle-specific global flags (`RUN_EXTRACTION`, `RUN_SEARCH`, …) and paths were removed.
 2. **Less bookkeeping.** The notebook checksummed and locked every intermediate file (per-fold checkpoints, identity JSONs, completion markers). Fitting the head takes seconds, so this is now plain in-memory training. Only the expensive step, feature extraction, is still cached and resumable.
-3. **Age-only baseline (new).** `evaluate.py` reports a logistic-regression-on-age baseline under the same train/validation protocol as the image model, plus its ROC curve. Given the age gap between the classes, this is the most important context for the image model's AUROC.
+3. **Age-only baseline (new).** `evaluate.py` reports a logistic-regression-on-age baseline under the same train/validation protocol as the image model, plus its ROC curve. It turned out to beat the image model (see [Results](#results)).
 4. **Repeated CV option (new).** `search_slices.py --cv-folds 5 --cv-repeats 3` averages the slice-count search over reshuffled folds. The default (3 folds, 1 repeat) reproduces the reported run.
 5. **Inference (new).** `predict.py` and `idh.inference.IDHPredictor` run the whole pipeline on a new patient's NIfTI files, and also return the attention weight of each slice.
 6. **Reusing the Kaggle run (new).** `import_kaggle_run.py` converts the notebook's exported archive into `model/` (trained head + config) and `features/` (feature cache). Everything after feature extraction can then be re-run on a CPU without downloading the MRI.
@@ -126,14 +128,7 @@ The original notebook is kept unchanged, with its outputs, in [`notebooks/archiv
 
 > ⚠️ Research code, **not a medical device**. Do not use its output for any clinical decision.
 
-The trained head is not committed to the repo yet. Download the archive from the Kaggle notebook's output (`idh_dinov2_auto_slices_v1.zip`, ~220 MB) and import it:
-
-```bash
-pip install -r requirements.txt
-python import_kaggle_run.py idh_dinov2_auto_slices_v1.zip --features   # -> model/ and features/
-```
-
-Then predict on any patient with co-registered, skull-stripped FLAIR / T1c / T2 volumes:
+The trained head from the Kaggle run (`model/head.pt`, ~400 KB) and its settings (`model/config.json`: 64 slices, threshold 0.635) are included. Predict on any patient with co-registered, skull-stripped FLAIR / T1c / T2 volumes:
 
 ```bash
 python predict.py --flair flair.nii.gz --t1c t1c.nii.gz --t2 t2.nii.gz
@@ -148,7 +143,9 @@ result = predictor.predict({"FLAIR": "flair.nii.gz", "T1c": "t1c.nii.gz", "T2": 
 print(result["predicted_class"], round(result["score"], 3))
 ```
 
-The first prediction downloads DINOv2-small (~90 MB) from Hugging Face. A CPU is enough for single patients.
+The first prediction downloads DINOv2-small (~90 MB) from Hugging Face. A CPU is enough for single patients. As a check, `predict.py` on UCSF-PDGM-0021 (a validation patient) gives a score of 0.971, the same as the original notebook.
+
+To re-run the analysis without the MRI, take the archive saved by the Kaggle notebook (`idh_dinov2_auto_slices_v1.zip`, ~220 MB, in the notebook's *Output* tab). `python import_kaggle_run.py idh_dinov2_auto_slices_v1.zip --features` unpacks its feature cache into `features/`.
 
 ## Repository structure
 
@@ -171,7 +168,8 @@ The first prediction downloads DINOv2-small (~90 MB) from Hugging Face. A CPU is
 ├── evaluate.py                   # step 5: test metrics and baselines -> results/
 ├── predict.py                    # CLI: predict one patient
 ├── import_kaggle_run.py          # use the original Kaggle run's weights and features
-├── results/                      # metrics and figures of the reported run
+├── model/                        # trained head (head.pt) + settings and threshold (config.json)
+├── results/                      # metrics, predictions and figures of the reported run
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_slice_search_and_evaluation.ipynb

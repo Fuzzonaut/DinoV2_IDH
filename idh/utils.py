@@ -38,12 +38,25 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+def _clean(obj):
+    """NaN/inf -> null and numpy scalars -> Python, so the output is valid JSON."""
+    if isinstance(obj, dict):
+        return {k: _clean(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_clean(v) for v in obj]
+    if isinstance(obj, np.generic):
+        obj = obj.item()
+    if isinstance(obj, float) and not np.isfinite(obj):
+        return None
+    return obj
+
+
 def write_json(path, obj):
     """Write JSON atomically (temp file + rename), so an interrupted run never leaves half a file."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=2, default=str) + "\n")
+    tmp.write_text(json.dumps(_clean(obj), indent=2, default=str, allow_nan=False) + "\n")
     tmp.replace(path)
 
 

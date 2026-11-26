@@ -1,18 +1,70 @@
 {
   "DINOv2 + attention MIL": {
-    "patients": 75, "mutants": 16,
-    "auroc": 0.787076, "auroc_ci": [0.658898, 0.899391], "average_precision": 0.544733,
-    "accuracy": 0.813333, "balanced_accuracy": 0.653602,
-    "sensitivity": 0.375, "specificity": 0.932203, "ppv": 0.6, "npv": 0.846154,
-    "f1": 0.461538, "log_loss": 0.478232, "brier": 0.14986,
-    "threshold": 0.635, "tn": 55, "fp": 4, "fn": 10, "tp": 6
+    "patients": 75,
+    "mutants": 16,
+    "auroc": 0.7870762711864406,
+    "average_precision": 0.5447330447330447,
+    "accuracy": 0.8133333333333334,
+    "balanced_accuracy": 0.6536016949152542,
+    "sensitivity": 0.375,
+    "specificity": 0.9322033898305084,
+    "ppv": 0.6,
+    "npv": 0.8461538461538461,
+    "f1": 0.46153846153846156,
+    "log_loss": 0.4782318999371813,
+    "brier": 0.14985976220168135,
+    "threshold": 0.635,
+    "tn": 55,
+    "fp": 4,
+    "fn": 10,
+    "tp": 6,
+    "auroc_ci": [
+      0.6588983050847458,
+      0.8993908898305084
+    ]
   },
   "Always wildtype (prevalence)": {
-    "patients": 75, "mutants": 16,
-    "auroc": 0.5, "average_precision": 0.213333,
-    "accuracy": 0.786667, "balanced_accuracy": 0.5,
-    "sensitivity": 0.0, "specificity": 1.0, "ppv": null, "npv": 0.786667,
-    "f1": 0.0, "log_loss": 0.518512, "brier": 0.167879,
-    "threshold": 0.5, "tn": 59, "fp": 0, "fn": 16, "tp": 0
+    "patients": 75,
+    "mutants": 16,
+    "auroc": 0.5,
+    "average_precision": 0.21333333333333335,
+    "accuracy": 0.7866666666666666,
+    "balanced_accuracy": 0.5,
+    "sensitivity": 0.0,
+    "specificity": 1.0,
+    "ppv": null,
+    "npv": 0.7866666666666666,
+    "f1": 0.0,
+    "log_loss": 0.5185119329039308,
+    "brier": 0.16787901701323252,
+    "threshold": 0.5,
+    "tn": 59,
+    "fp": 0,
+    "fn": 16,
+    "tp": 0
+  },
+  "Age only (logistic regression)": {
+    "patients": 75,
+    "mutants": 16,
+    "auroc": 0.9099576271186441,
+    "average_precision": 0.7194842943004707,
+    "accuracy": 0.8666666666666667,
+    "balanced_accuracy": 0.8469279661016949,
+    "sensitivity": 0.8125,
+    "specificity": 0.8813559322033898,
+    "ppv": 0.65,
+    "npv": 0.9454545454545454,
+    "f1": 0.7222222222222222,
+    "log_loss": 0.29798624656520584,
+    "brier": 0.08880344952615662,
+    "threshold": 0.32999999999999996,
+    "tn": 52,
+    "fp": 7,
+    "fn": 3,
+    "tp": 13,
+    "auroc_ci": [
+      0.8182865466101694,
+      0.9777542372881356
+    ]
   }
 }

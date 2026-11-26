@@ -1,0 +1,36 @@
+{
+  "extraction_config": {
+    "allow_partial_cohort": false,
+    "crop_margin_voxels": 5,
+    "extraction_version": "all-nonempty-axial-cls-and-patch-mean-v1",
+    "image_size": 224,
+    "modalities": [
+      "FLAIR",
+      "T1c",
+      "T2"
+    ],
+    "model_id": "facebook/dinov2-small",
+    "model_revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+    "run_name": "idh_dinov2_frozen_v1",
+    "seed": 2026,
+    "slice_batch_size": 16,
+    "test_fraction": 0.15,
+    "use_mixed_precision": true,
+    "validation_fraction": 0.15
+  },
+  "encoder_sha256": "e837f69e1b0a4aa08e9fc9db90e1053037ea05146b33b9b50d0d6fb3ddcdc481",
+  "feature_kind": "cls",
+  "selected_count": 64,
+  "slice_range": [
+    0.05,
+    0.95
+  ],
+  "threshold": 0.635,
+  "threshold_objective": "balanced accuracy on the validation split",
+  "class_names": [
+    "IDH wildtype",
+    "IDH mutant"
+  ],
+  "training_epochs": 11,
+  "train_mutant_fraction": 0.20579710144927535
+}
